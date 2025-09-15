@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'OC ' + ${ocNumero}">Orden de Compra</title>
+    <div class="ocline">OC <span th:text="${ocNumero}">000/2025</span></div>    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; color:#111; }
+        .title { font-size: 18px; font-weight: bold; letter-spacing: .5px; }
+        .ocline { font-size: 12px; margin-top: 2px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .box { border: 1px solid #d9d9d9; border-radius: 6px; padding: 8px; }
+        .muted { color:#555; font-size: 11px; }
+        table { width:100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border:1px solid #e5e5e5; padding:6px; vertical-align: top; }
+        th { background:#f6f6f6; font-weight:600; }
+        .right { text-align:right; }
+        .desc { text-transform: uppercase; font-weight:600; }
+        .desc-sub { font-size: 11px; color:#555; text-transform:none; font-weight:400; }
+        .totales { width: 50%; margin-left:auto; margin-top:10px; }
+        .totales td { border:none; }
+        .totales .label { text-align:right; padding-right:10px; }
+        .totales .value { text-align:right; font-weight:700; }
+        .total-row { border-top:1px solid #ccc; }
+        .footer { margin-top:12px; }
+        .box { border: 1px solid #d9d9d9; border-radius: 6px; padding: 16px 18px; }
+
+        /* separa las filas dentro de cada box */
+        .box > div { margin-bottom: 8px; }
+        .box > div:last-child { margin-bottom: 0; }
+
+        /* un poquito más de espacio entre columnas */
+        .grid { gap: 14px; }
+
+        /* algo más de padding en celdas de tabla */
+        th, td { padding: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="title">TINTENFISCH S.A. · ORDEN DE COMPRA</div>
+<div class="ocline">OC <span th:text="${oc.id}">000/2025</span></div>
+
+<div class="grid">
+    <div class="box">
+        <div><strong>Fecha:</strong>
+            <span th:text="${#temporals.format(oc.fechaCreacion, 'dd/MM/yyyy')}">dd/mm/aaaa</span>
+        </div>
+        <div><strong>Autorizado por:</strong> <span th:text="'Victoria Castagnaro'">_____</span></div>
+        <div><strong>Transporte:</strong> <span th:text="${oc.transporte}">-</span></div>
+        <div><strong>A la atención de:</strong> <span th:text="${oc.atencionDe}">-</span></div>
+    </div>
+    <div class="box">
+        <div><strong>Emitido para:</strong> <span th:text="${oc.proveedorRazonSocial}">Proveedor</span></div>
+        <div><strong>Enviar el:</strong>
+            <span th:text="${#temporals.format(oc.fecha, 'dd/MM/yyyy')}">dd/mm/aaaa</span>
+        </div>        <div><strong>Moneda:</strong> <span th:text="${oc.moneda}">ARS</span></div>
+    </div>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>DESCRIPCIÓN</th>
+        <th class="right">CANTIDAD</th>
+        <th class="right">PRECIO UNITARIO</th>
+        <th class="right">PRECIO TOTAL</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="p : ${oc.productos}">
+        <td>
+            <div class="desc" th:text="${p.productoNombre}">AZÚCAR - AZÚCAR COMÚN TIPO A (1 KILOGRAMO)</div>
+            <div class="desc-sub">
+                <span th:text="${p.productoMarca}">CANELLA</span>
+                &#160;·&#160;
+                <span th:text="${p.productoProveedor}">DISTRIBUIDORA CIBUS</span>
+            </div>
+        </td>
+        <td class="right" th:text="${p.cantidad}">0</td>
+        <td class="right"
+            th:text="${#numbers.formatDecimal(p.precioUnitario, 1, 'COMMA', 2, 'POINT')}">0,00</td>
+        <td class="right"
+            th:text="${#numbers.formatDecimal(p.precioUnitario.multiply(p.cantidad), 1, 'COMMA', 2, 'POINT')}">0,00</td>
+    </tr>
+    </tbody>
+</table>
+
+<table class="totales">
+    <tr>
+        <td class="label">Subtotal</td>
+        <td class="value" th:text="${subtotal}">$ 0,00</td>
+    </tr>
+    <tr>
+        <td class="label">Impuestos</td>
+        <td class="value muted">—</td>
+    </tr>
+    <tr>
+        <td class="label">IVA</td>
+        <td class="value" th:text="${iva}">$ 0,00</td>
+    </tr>
+    <tr class="total-row">
+        <td class="label">Total</td>
+        <td class="value" th:text="${total}">$ 0,00</td>
+    </tr>
+</table>
+
+<div class="footer">
+    <div class="box">
+        <div><strong>DOMICILIO DE ENTREGA:</strong>
+            <span th:text="${oc.domicilio}">JJ de Urquiza 4473, Caseros. De 7 a 13 hs</span>
+        </div>
+        <div class="muted" style="margin-top:8px;">
+            <span th:text="${contactoInfo}">Contacto/Observaciones</span>
+        </div>
+        <div class="grid" style="margin-top:10px;">
+            <div>Firma del empleado _______________________</div>
+            <div>Fecha <span th:text="${oc.fechaCreacion}">dd/mm/aaaa</span></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
