@@ -1,31 +1,33 @@
 package com.example.tinten.producto.entity
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
 import com.example.tinten.ordenCompra.entity.OrdenCompra
+import jakarta.persistence.*
+import org.hibernate.annotations.CreationTimestamp
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "producto_orden_compra")
 class ProductoOrdenCompra(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @ManyToOne @JoinColumn(name = "producto_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "producto_id", nullable = false)
     val producto: Producto,
 
-    @ManyToOne @JoinColumn(name = "orden_compra_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "orden_compra_id", nullable = false)
     val ordenCompra: OrdenCompra,
 
-    @Column(nullable = false)
+    @Column(name = "precio_unitario", nullable = false, precision = 19, scale = 4)
     val precioUnitario: BigDecimal,
 
     @Column(nullable = false)
-    val cantidad: Int
+    val cantidad: Int,
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false, nullable = false)
+    var createdAt: LocalDateTime? = null
 )

@@ -1,24 +1,29 @@
 package com.example.tinten.producto.service
 
+import com.example.tinten.exception.domainExceptions.NotFoundException
 import com.example.tinten.producto.dto.ProductoCreateRequest
 import com.example.tinten.producto.dto.ProductoDto
 import com.example.tinten.producto.entity.Producto
 import com.example.tinten.producto.repository.ProductoRepository
+import com.example.tinten.exception.domainExceptions.ValidationExceptions
+import com.example.tinten.producto.dto.ProductCompraFilterDto
+import com.example.tinten.producto.dto.ProductOrderDto
+import com.example.tinten.producto.entity.ProductoOrdenCompra
+import com.example.tinten.producto.repository.OrdenCompraItemSpecs
+import com.example.tinten.producto.repository.ProductoOrdenCompraRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-
-// Reutilizá tus propias excepciones si ya existen
-class NotFoundException(message: String) : RuntimeException(message)
-class ValidationException(message: String) : RuntimeException(message)
-
 @Service
 class ProductoService(
     @Autowired
-    private val productoRepository: ProductoRepository
+
+    private val productoRepository: ProductoRepository,
+    @Autowired
+    private val productOrdenCompraRepository: ProductoOrdenCompraRepository,
 ) {
 
     fun create(request: ProductoCreateRequest): ProductoDto {
@@ -31,7 +36,7 @@ class ProductoService(
         )
 
         if (existeNombre(normalized.nombre)) {
-            throw ValidationException("Ya existe un producto con nombre '${normalized.nombre}'")
+            throw ValidationExceptions("Ya existe un producto con nombre '${normalized.nombre}'")
         }
 
         val producto = Producto.fromDto(normalized)
@@ -57,18 +62,18 @@ class ProductoService(
     // ---------------------------
 
     private fun validarCreate(req: ProductoCreateRequest) {
-        if (req.nombre.isBlank()) throw ValidationException("El nombre es obligatorio")
-        if (req.marca.isBlank()) throw ValidationException("La marca es obligatoria")
-        if (req.proveedor.isBlank()) throw ValidationException("El proveedor es obligatorio")
+        if (req.nombre.isBlank()) throw ValidationExceptions("El nombre es obligatorio")
+        if (req.marca.isBlank()) throw ValidationExceptions("La marca es obligatoria")
+        if (req.proveedor.isBlank()) throw ValidationExceptions("El proveedor es obligatorio")
 
-        if (req.nombre.length > 120) throw ValidationException("El nombre excede 120 caracteres")
-        if (req.marca.length > 80) throw ValidationException("La marca excede 80 caracteres")
-        if (req.proveedor.length > 120) throw ValidationException("El proveedor excede 120 caracteres")
+        if (req.nombre.length > 120) throw ValidationExceptions("El nombre excede 120 caracteres")
+        if (req.marca.length > 80) throw ValidationExceptions("La marca excede 80 caracteres")
+        if (req.proveedor.length > 120) throw ValidationExceptions("El proveedor excede 120 caracteres")
 
         val basicRegex = Regex("""^[\p{L}\p{N}\s\-\._&/()]+$""") // letras, números, espacio y algunos símbolos comunes
-        if (!basicRegex.matches(req.nombre.trim())) throw ValidationException("El nombre contiene caracteres inválidos")
-        if (!basicRegex.matches(req.marca.trim())) throw ValidationException("La marca contiene caracteres inválidos")
-        if (!basicRegex.matches(req.proveedor.trim())) throw ValidationException("El proveedor contiene caracteres inválidos")
+        if (!basicRegex.matches(req.nombre.trim())) throw ValidationExceptions("El nombre contiene caracteres inválidos")
+        if (!basicRegex.matches(req.marca.trim())) throw ValidationExceptions("La marca contiene caracteres inválidos")
+        if (!basicRegex.matches(req.proveedor.trim())) throw ValidationExceptions("El proveedor contiene caracteres inválidos")
     }
 
     private fun existeNombre(nombre: String): Boolean {
@@ -78,4 +83,29 @@ class ProductoService(
         return productoRepository.findAll()
             .any { it.nombre.equals(nombre, ignoreCase = true) }
     }
+    @Transactional(readOnly = true)
+    fun search(filter: ProductCompraFilterDto, pageable: Pageable): Page<ProductOrderDto> {
+        val spec = OrdenCompraItemSpecs.withFilter(filter)
+        return productOrdenCompraRepository.findAll(spec, pageable).map { it.toDto() }
+    }
+
+    private fun ProductoOrdenCompra.toDto() = ProductOrderDto(
+        itemId = this.id!!,
+        productoId = this.producto.id!!,
+        nombreProducto = this.producto.nombre,
+        marca = this.producto.marca,
+        proveedor = this.producto.proveedor,
+        envase = this.producto.envase,
+        cantidad = this.cantidad,
+        precioUnitario = this.precioUnitario,
+        createdAt = this.createdAt
+    )
+
+    @Transactional(readOnly = true)
+    fun searchOrThrow(filter: ProductCompraFilterDto, pageable: Pageable) =
+        search(filter, pageable).also { page ->
+            if (page.isEmpty) {
+                throw NotFoundException("No se encontraron items para los filtros provistos")
+            }
+        }
 }
