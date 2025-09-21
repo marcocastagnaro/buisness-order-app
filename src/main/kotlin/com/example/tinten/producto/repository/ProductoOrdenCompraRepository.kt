@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 
 interface ProductoOrdenCompraRepository :
     JpaRepository<ProductoOrdenCompra, Long>,
-    JpaSpecificationExecutor<ProductoOrdenCompra>
+    JpaSpecificationExecutor<ProductoOrdenCompra>,
+ProductoOrdenCompraRepositoryCustom

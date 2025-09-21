@@ -8,6 +8,7 @@ import com.example.tinten.producto.repository.ProductoRepository
 import com.example.tinten.exception.domainExceptions.ValidationExceptions
 import com.example.tinten.producto.dto.ProductCompraFilterDto
 import com.example.tinten.producto.dto.ProductOrderDto
+import com.example.tinten.producto.dto.ProductoOrderSearchResultDto
 import com.example.tinten.producto.entity.ProductoOrdenCompra
 import com.example.tinten.producto.repository.OrdenCompraItemSpecs
 import com.example.tinten.producto.repository.ProductoOrdenCompraRepository
@@ -17,6 +18,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+
 @Service
 class ProductoService(
     @Autowired
@@ -84,11 +87,17 @@ class ProductoService(
             .any { it.nombre.equals(nombre, ignoreCase = true) }
     }
     @Transactional(readOnly = true)
-    fun search(filter: ProductCompraFilterDto, pageable: Pageable): Page<ProductOrderDto> {
+    fun search(filter: ProductCompraFilterDto, pageable: Pageable): ProductoOrderSearchResultDto {
         val spec = OrdenCompraItemSpecs.withFilter(filter)
-        return productOrdenCompraRepository.findAll(spec, pageable).map { it.toDto() }
-    }
 
+        // 1) Page de items
+        val page = productOrdenCompraRepository.findAll(spec, pageable).map { it.toDto() }
+
+        // 2) Totales del MISMO conjunto filtrado (sin paginar)
+        val totals = productOrdenCompraRepository.sumTotals(spec)
+
+        return ProductoOrderSearchResultDto(page = page, totals = totals)
+    }
     private fun ProductoOrdenCompra.toDto() = ProductOrderDto(
         itemId = this.id!!,
         productoId = this.producto.id!!,
@@ -98,14 +107,7 @@ class ProductoService(
         envase = this.producto.envase,
         cantidad = this.cantidad,
         precioUnitario = this.precioUnitario,
-        createdAt = this.createdAt
+        createdAt = this.createdAt,
+        mes= this.createdAt!!.month.toString(),
     )
-
-    @Transactional(readOnly = true)
-    fun searchOrThrow(filter: ProductCompraFilterDto, pageable: Pageable) =
-        search(filter, pageable).also { page ->
-            if (page.isEmpty) {
-                throw NotFoundException("No se encontraron items para los filtros provistos")
-            }
-        }
 }

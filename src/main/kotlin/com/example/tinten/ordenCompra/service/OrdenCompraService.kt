@@ -126,9 +126,7 @@ class OrdenCompraService(
         }
 
         productos.forEach {
-            println("${it.productoId} validados: ${it.productoId}")
             val productName = productoRepository.findById(it.productoId).orElseThrow({NotFoundException("Producto ${it.productoId} no fue encontrado")})
-            println("${productName} validados: ${it.productoId}")
             if (it.cantidad <= 0) throw ValidationException("La cantidad de '${productName}' debe ser > 0")
             if (it.precioUnitario <= java.math.BigDecimal.ZERO)
                 throw ValidationException("El precio unitario de '${productName}' debe ser > 0")

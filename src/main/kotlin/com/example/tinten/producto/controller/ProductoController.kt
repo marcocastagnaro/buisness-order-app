@@ -5,6 +5,7 @@ import com.example.tinten.producto.dto.ProductCompraFilterDto
 import com.example.tinten.producto.dto.ProductOrderDto
 import com.example.tinten.producto.dto.ProductoCreateRequest
 import com.example.tinten.producto.dto.ProductoDto
+import com.example.tinten.producto.dto.ProductoOrderSearchResultDto
 import com.example.tinten.producto.service.ProductoService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -43,7 +44,7 @@ class ProductoController(
         return ResponseEntity.ok(producto)
     }
 
-    @GetMapping
+    @GetMapping("/search")
     fun search(
         @RequestParam(required = false) nombreProducto: String?,
         @RequestParam(required = false) marca: String?,
@@ -52,7 +53,7 @@ class ProductoController(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) createdFrom: LocalDate?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) createdTo: LocalDate?,
         pageable: Pageable
-    ): Page<ProductOrderDto> {
+    ): ProductoOrderSearchResultDto {
         if (createdFrom != null && createdTo != null && createdFrom.isAfter(createdTo)) {
             throw IllegalArgumentException("createdFrom no puede ser posterior a createdTo")
         }

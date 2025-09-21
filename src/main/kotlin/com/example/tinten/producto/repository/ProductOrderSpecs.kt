@@ -4,6 +4,7 @@ import com.example.tinten.producto.dto.ProductCompraFilterDto
 import com.example.tinten.producto.dto.ProductOrderDto
 import com.example.tinten.producto.entity.Producto
 import com.example.tinten.producto.entity.ProductoOrdenCompra
+import jakarta.persistence.Tuple
 import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
@@ -29,13 +30,26 @@ object OrdenCompraItemSpecs {
                 predicates += cb.like(cb.lower(pJoin.get("envase")), "%${it.lowercase()}%")
             }
 
-            if (f.createdFrom != null || f.createdTo != null) {
-                val start = (f.createdFrom ?: LocalDate.MIN).atStartOfDay()
-                val endExclusive = ((f.createdTo ?: LocalDate.MAX).plusDays(1)).atStartOfDay()
-                predicates += cb.between(root.get<LocalDateTime>("createdAt"), start, endExclusive)
+            val createdAtPath = root.get<LocalDateTime>("createdAt")
+
+            f.createdFrom?.let { from ->
+                predicates += cb.greaterThanOrEqualTo(createdAtPath, from.atStartOfDay())
             }
 
-            if (query?.orderList?.isEmpty() == true) {
+            f.createdTo?.let { to ->
+                // endExclusive = inicio del día siguiente, salvo que sea 9999-12-31
+                val endExclusive = if (to == LocalDate.of(9999, 12, 31)) {
+                    // límite alto seguro sin overflow
+                    LocalDateTime.of(9999, 12, 31, 23, 59, 59, 999_000_000)
+                } else {
+                    to.plusDays(1).atStartOfDay()
+                }
+                predicates += cb.lessThan(createdAtPath, endExclusive)
+            }
+
+            val resultType = query?.resultType
+            val isAggregate = resultType == java.lang.Long::class.java || resultType == Tuple::class.java
+            if (query?.orderList?.isEmpty() == true && !isAggregate) {
                 query.orderBy(cb.desc(root.get<LocalDateTime>("createdAt")))
             }
 

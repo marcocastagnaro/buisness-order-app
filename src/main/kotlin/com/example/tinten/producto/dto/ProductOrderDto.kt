@@ -12,5 +12,7 @@ data class ProductOrderDto (
     val envase: String,
     val cantidad: Int,
     val precioUnitario: BigDecimal,
-    val createdAt: LocalDateTime?
+    val createdAt: LocalDateTime?,
+    val mes: String
 )
+
