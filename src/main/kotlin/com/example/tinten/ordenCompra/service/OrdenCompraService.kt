@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 
@@ -92,7 +93,7 @@ class OrdenCompraService(
                         ordenCompra = ordenCompra,
                         precioUnitario = prodReq.precioUnitario.setScale(2, RoundingMode.HALF_UP),
                         cantidad = prodReq.cantidad,
-                        createdAt = LocalDateTime.now()
+                        createdAt = LocalDate.now()
                     )
                 }
             )

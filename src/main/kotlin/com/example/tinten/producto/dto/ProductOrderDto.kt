@@ -1,6 +1,7 @@
 package com.example.tinten.producto.dto
 
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class ProductOrderDto (
@@ -12,7 +13,7 @@ data class ProductOrderDto (
     val envase: String,
     val cantidad: Int,
     val precioUnitario: BigDecimal,
-    val createdAt: LocalDateTime?,
+    val createdAt: LocalDate?,
     val mes: String
 )
 

@@ -38,117 +38,80 @@ class DataSeederConfig {
             return
         }
 
-        // -----------------------------------------
-        // 1) Productos alimenticios (marcas reales)
-        // -----------------------------------------
+        fun month(n: Long) = LocalDate.now().minusMonths(n).withDayOfMonth(1)
+
+        // ---------- Productos base ----------
         val productos = listOf(
-            // arroz
             Producto(nombre = "Arroz Largo Fino", marca = "Gallo", proveedor = "Molinos Río de la Plata", envase = "1 kg"),
-            Producto(nombre = "Arroz Doble Carolina", marca = "Gallo", proveedor = "Molinos Río de la Plata", envase = "1 kg"),
-            // fideos/pastas
-            Producto(nombre = "Fideos Spaghetti", marca = "Matarazzo", proveedor = "Molinos Río de la Plata", envase = "500 g"),
-            Producto(nombre = "Fideos Tirabuzón", marca = "Lucchetti", proveedor = "Molinos Río de la Plata", envase = "500 g"),
-            // harinas
-            Producto(nombre = "Harina 000", marca = "Morixe", proveedor = "Morixe", envase = "1 kg"),
-            Producto(nombre = "Harina 0000", marca = "Blancaflor", proveedor = "Molinos Río de la Plata", envase = "1 kg"),
-            // aceites
             Producto(nombre = "Aceite de Girasol", marca = "Natura", proveedor = "Molinos Río de la Plata", envase = "900 ml"),
-            Producto(nombre = "Aceite de Soja", marca = "Marolio", proveedor = "Molinos Marolio", envase = "900 ml"),
-            // azúcar
-            Producto(nombre = "Azúcar Común", marca = "Ledesma", proveedor = "Ledesma", envase = "1 kg"),
-            // lácteos
             Producto(nombre = "Leche Entera", marca = "La Serenísima", proveedor = "Mastellone Hnos", envase = "1 L"),
-            Producto(nombre = "Yogur Entero Vainilla", marca = "La Serenísima", proveedor = "Mastellone Hnos", envase = "190 g"),
-            // enlatados / tomates
-            Producto(nombre = "Puré de Tomate", marca = "Molto", proveedor = "Molto", envase = "520 g"),
             Producto(nombre = "Tomate Triturado", marca = "Arcor", proveedor = "Arcor", envase = "520 g"),
-            // legumbres
-            Producto(nombre = "Lentejas Secas", marca = "Arcor", proveedor = "Arcor", envase = "400 g"),
-            // caldos
-            Producto(nombre = "Caldo de Verduras", marca = "Knorr", proveedor = "Unilever", envase = "6 cubos"),
-            // galletitas/panificados
-            Producto(nombre = "Galletitas Agua", marca = "Bagley", proveedor = "Arcor", envase = "3 x 100 g"),
-            Producto(nombre = "Pan de Molde", marca = "Fargo", proveedor = "Fargo", envase = "600 g"),
-            // infusiones
+            Producto(nombre = "Fideos Spaghetti", marca = "Matarazzo", proveedor = "Molinos Río de la Plata", envase = "500 g"),
             Producto(nombre = "Yerba Mate", marca = "Taragüí", proveedor = "Las Marías", envase = "1 kg"),
-            Producto(nombre = "Café Molido", marca = "La Virginia", proveedor = "La Virginia", envase = "500 g"),
-            // extras
             Producto(nombre = "Arvejas en Lata", marca = "Marolio", proveedor = "Molinos Marolio", envase = "350 g"),
-            Producto(nombre = "Aceitunas Verdes", marca = "Nucete", proveedor = "Nucete", envase = "350 g")
+            Producto(nombre = "Aceitunas Verdes", marca = "Nucete", proveedor = "Nucete", envase = "350 g"),
+            // podés sumar más...
         )
 
         val savedProductos = productoRepository.saveAll(productos)
-        val byName = savedProductos.associateBy { it.nombre to it.marca } // para búsquedas rápidas
-
+        val byName = savedProductos.associateBy { it.nombre to it.marca }
         fun p(nombre: String, marca: String) = byName[nombre to marca]!!
 
-        // -----------------------------------------
-        // 2) Órdenes de Compra con ítems
-        // -----------------------------------------
+        // Helper para agregar ítems con fecha propia
+        fun addItem(
+            oc: OrdenCompra,
+            nombre: String,
+            marca: String,
+            precio: String,
+            cantidad: Int,
+            createdAt: LocalDate
+        ) = ProductoOrdenCompra(
+            producto = p(nombre, marca),
+            ordenCompra = oc,
+            precioUnitario = BigDecimal(precio),
+            cantidad = cantidad,
+            createdAt = createdAt
+        )
+
+        // ---------- OCs ----------
         val oc1 = OrdenCompra(
             proveedorRazonSocial = "Molinos Río de la Plata S.A.",
+            atencionDe = "Compras",
+            fecha = LocalDate.now().minusDays(90),
+            moneda = "ARS",
+            transporte = "Camión",
+            fechaCreacion = LocalDate.now().minusDays(90),
+            domicilio = "Av los lagos 3115"
+        )
+
+        val oc2 = OrdenCompra(
+            proveedorRazonSocial = "Arcor S.A.I.C.",
+            atencionDe = "Abastecimiento",
+            fecha = LocalDate.now().minusDays(60),
+            moneda = "ARS",
+            transporte = "Flete Tercerizado",
+            fechaCreacion = LocalDate.now().minusDays(60),
+            domicilio = "Av los lagos 3115"
+        )
+
+        val oc3 = OrdenCompra(
+            proveedorRazonSocial = "Mastellone Hnos S.A.",
+            atencionDe = "Recepción",
+            fecha = LocalDate.now().minusDays(30),
+            moneda = "ARS",
+            transporte = "Refrigerado",
+            fechaCreacion = LocalDate.now().minusDays(30),
+            domicilio = "Av los lagos 3115"
+        )
+
+        val oc4 = OrdenCompra(
+            proveedorRazonSocial = "Molto S.A.",
             atencionDe = "Compras",
             fecha = LocalDate.now().minusDays(15),
             moneda = "ARS",
             transporte = "Camión",
             fechaCreacion = LocalDate.now().minusDays(15),
             domicilio = "Av los lagos 3115"
-        )
-        oc1.productos.addAll(
-            listOf(
-                ProductoOrdenCompra(producto = p("Arroz Largo Fino", "Gallo"), ordenCompra = oc1, precioUnitario = BigDecimal("1200.00"), cantidad = 50),
-                ProductoOrdenCompra(producto = p("Fideos Spaghetti", "Matarazzo"), ordenCompra = oc1, precioUnitario = BigDecimal("900.00"), cantidad = 80),
-                ProductoOrdenCompra(producto = p("Aceite de Girasol", "Natura"), ordenCompra = oc1, precioUnitario = BigDecimal("1800.00"), cantidad = 40)
-            )
-        )
-
-        val oc2 = OrdenCompra(
-            proveedorRazonSocial = "Arcor S.A.I.C.",
-            atencionDe = "Abastecimiento",
-            fecha = LocalDate.now().minusDays(12),
-            moneda = "ARS",
-            transporte = "Flete Tercerizado",
-            fechaCreacion = LocalDate.now().minusDays(12),
-            domicilio = "Av los lagos 3115"
-        )
-        oc2.productos.addAll(
-            listOf(
-                ProductoOrdenCompra(producto = p("Tomate Triturado", "Arcor"), ordenCompra = oc2, precioUnitario = BigDecimal("950.00"), cantidad = 120),
-                ProductoOrdenCompra(producto = p("Lentejas Secas", "Arcor"), ordenCompra = oc2, precioUnitario = BigDecimal("1100.00"), cantidad = 60),
-                ProductoOrdenCompra(producto = p("Galletitas Agua", "Bagley"), ordenCompra = oc2, precioUnitario = BigDecimal("700.00"), cantidad = 90)
-            )
-        )
-
-        val oc3 = OrdenCompra(
-            proveedorRazonSocial = "Mastellone Hnos S.A.",
-            atencionDe = "Recepción",
-            fecha = LocalDate.now().minusDays(10),
-            moneda = "ARS",
-            transporte = "Refrigerado",
-            fechaCreacion = LocalDate.now().minusDays(10),
-            domicilio = "Av los lagos 3115"
-        )
-        oc3.productos.addAll(
-            listOf(
-                ProductoOrdenCompra(producto = p("Leche Entera", "La Serenísima"), ordenCompra = oc3, precioUnitario = BigDecimal("800.00"), cantidad = 200),
-                ProductoOrdenCompra(producto = p("Yogur Entero Vainilla", "La Serenísima"), ordenCompra = oc3, precioUnitario = BigDecimal("450.00"), cantidad = 150)
-            )
-        )
-
-        val oc4 = OrdenCompra(
-            proveedorRazonSocial = "Molto S.A.",
-            atencionDe = "Compras",
-            fecha = LocalDate.now().minusDays(8),
-            moneda = "ARS",
-            transporte = "Camión",
-            fechaCreacion = LocalDate.now().minusDays(8),
-            domicilio = "Av los lagos 3115"
-        )
-        oc4.productos.addAll(
-            listOf(
-                ProductoOrdenCompra(producto = p("Puré de Tomate", "Molto"), ordenCompra = oc4, precioUnitario = BigDecimal("700.00"), cantidad = 200),
-                ProductoOrdenCompra(producto = p("Aceitunas Verdes", "Nucete"), ordenCompra = oc4, precioUnitario = BigDecimal("2200.00"), cantidad = 30)
-            )
         )
 
         val oc5 = OrdenCompra(
@@ -160,16 +123,40 @@ class DataSeederConfig {
             fechaCreacion = LocalDate.now().minusDays(5),
             domicilio = "Av los lagos 3115"
         )
-        oc5.productos.addAll(
-            listOf(
-                ProductoOrdenCompra(producto = p("Aceite de Soja", "Marolio"), ordenCompra = oc5, precioUnitario = BigDecimal("1600.00"), cantidad = 60),
-                ProductoOrdenCompra(producto = p("Arvejas en Lata", "Marolio"), ordenCompra = oc5, precioUnitario = BigDecimal("600.00"), cantidad = 140),
-                ProductoOrdenCompra(producto = p("Yerba Mate", "Taragüí"), ordenCompra = oc5, precioUnitario = BigDecimal("4200.00"), cantidad = 40)
-            )
-        )
 
-        val savedOCs = ordenCompraRepository.saveAll(listOf(oc1, oc2, oc3, oc4, oc5))
+        // ---------- Ítems (mismos productos repetidos en distintos meses/OCs) ----------
+        oc1.productos.addAll(listOf(
+            // Arroz en 3 meses distintos
+            addItem(oc1, "Arroz Largo Fino", "Gallo", "1200.00", 50, month(5)),  // más viejo
+            addItem(oc1, "Fideos Spaghetti", "Matarazzo", "900.00", 80, month(5)),
+            addItem(oc1, "Aceite de Girasol", "Natura", "1800.00", 40, month(5)),
+        ))
 
+        oc2.productos.addAll(listOf(
+            addItem(oc2, "Arroz Largo Fino", "Gallo", "1350.00", 60, month(4)),  // sube precio vs mes 5
+            addItem(oc2, "Tomate Triturado", "Arcor", "950.00", 120, month(4)),
+            addItem(oc2, "Aceite de Girasol", "Natura", "1900.00", 30, month(4)), // aceite repetido
+        ))
+
+        oc3.productos.addAll(listOf(
+            addItem(oc3, "Arroz Largo Fino", "Gallo", "1500.00", 70, month(3)),  // vuelve a repetirse
+            addItem(oc3, "Leche Entera", "La Serenísima", "800.00", 200, month(3)),
+            addItem(oc3, "Aceite de Girasol", "Natura", "2100.00", 35, month(3)), // aceite repetido
+        ))
+
+        oc4.productos.addAll(listOf(
+            addItem(oc4, "Leche Entera", "La Serenísima", "860.00", 220, month(2)), // leche repetida
+            addItem(oc4, "Aceitunas Verdes", "Nucete", "2200.00", 30, month(2)),
+            addItem(oc4, "Tomate Triturado", "Arcor", "1000.00", 100, month(2)),   // tomate repetido
+        ))
+
+        oc5.productos.addAll(listOf(
+            addItem(oc5, "Arroz Largo Fino", "Gallo", "1650.00", 55, month(1)),   // arroz repetido (mes reciente)
+            addItem(oc5, "Yerba Mate", "Taragüí", "4200.00", 40, month(1)),
+            addItem(oc5, "Arvejas en Lata", "Marolio", "600.00", 140, LocalDate.now().withDayOfMonth(1)),
+        ))
+
+        ordenCompraRepository.saveAll(listOf(oc1, oc2, oc3, oc4, oc5))
         // -----------------------------------------
         // 3) Órdenes de Pago (simuladas)
         // -----------------------------------------

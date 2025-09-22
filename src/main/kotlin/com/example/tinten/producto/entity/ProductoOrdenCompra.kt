@@ -2,10 +2,8 @@ package com.example.tinten.producto.entity
 
 import com.example.tinten.ordenCompra.entity.OrdenCompra
 import jakarta.persistence.*
-import org.hibernate.annotations.CreationTimestamp
 import java.math.BigDecimal
-import java.time.LocalDateTime
-
+import java.time.LocalDate
 @Entity
 @Table(name = "producto_orden_compra")
 class ProductoOrdenCompra(
@@ -27,7 +25,6 @@ class ProductoOrdenCompra(
     @Column(nullable = false)
     val cantidad: Int,
 
-    @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
-    var createdAt: LocalDateTime? = null
+    var createdAt: LocalDate? = null
 )
